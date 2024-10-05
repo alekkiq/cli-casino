@@ -1,6 +1,7 @@
 from config import config
 from Database import Database
 from Player import Player
+from cli.Leaderboard import Leaderboard
 
 from Games.Dice import Dice
 
@@ -17,20 +18,19 @@ def main():
     db = Database(
         config = db_configs, 
         connect = True, 
-        setup = False
+        setup = True
     )
     
     clear_terminal()
     
-    name = str(input('Pelaajanimesi: '))
+    name = str(input('Käyttäjänimesi: '))
     # TODO password input & validation
 
-    player_object = Player(name, db)
-    player = player_object.get_data()
+    player = Player(name, db)
     
     # The main menu (1st level loop)
     while True:
-        header(f'Tervetuloa, {player["username"]}', player['balance'])
+        header(f'Tervetuloa, {player.get_username()}', player.get_balance())
         
         main_menu = [
             'Tulostaulukot',
@@ -39,8 +39,8 @@ def main():
             'Poistu pelistä\n',
         ]
         
-        if player.get('balance', 0) > 0 and not player.get('is_banned'):
-            main_menu.insert(0, 'Pelivalikko') # allow the player to do other things, but play games.
+        if player.get_balance() > 0 and not player.get_ban_status():
+            main_menu.insert(0, 'Pelivalikko\n') # allow the player to do other things, but play games.
         
         for index, choice in enumerate(main_menu, start = 1):
             print(f'{index})  {choice}')
@@ -57,7 +57,7 @@ def main():
                 
                 # Sub menu, eg. game selection (2nd level loop)
                 while True:
-                    header('Valitse peli', player['balance'])
+                    header('Valitse peli', player.get_balance())
                     
                     # 2nd level loop -> eg. game selection
                     for index, game in enumerate(game_menu, start=1):
@@ -67,19 +67,23 @@ def main():
                     
                     match game_choice:
                         case 1: # dice
-                            header('Nopanheitto', player['balance'])
+                            header('Nopanheitto', player.get_balance())
                             
-                            dice_game = Dice(player)
-                            updated_player = dice_game.startGame() # returns the player object
-                            
-                            # TODO update the player db record accordingly
+                            dice_game = Dice(player, db)
+                            dice_game.start_game()
                         case 2: # back to main menu
                             break
                         case _:
                             print(f'Virheellinen valinta! Valitse numerolla {game_menu[0]} - {game_menu[-1]}')
                 # ...
-            case 5: # exit TODO dynamically get the last item
-                print(f'\nNäkemiin, {player["username"]}!')
+            case 2:
+                header('Tulostaulukot', player.get_balance())
+                
+                leaderboard = Leaderboard(db)
+                leaderboard.start_leaderboard()
+            case 5: # TODO dynamically get the last index
+                print(f'\nNäkemiin, {player.get_username()}!')
+                player.save() # save the player's data once more before exiting
                 break
             case _: # incorrect input
                 print(f'Virheellinen valinta! Valitse numerolla {main_menu[0]} - {main_menu[-1]}')
