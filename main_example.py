@@ -1,7 +1,9 @@
 from config import config
 from Database import Database
 from Player import Player
+
 from cli.Leaderboard import Leaderboard
+from cli.GameHistory import GameHistory
 
 from Games.Dice import Dice
 
@@ -81,6 +83,11 @@ def main():
                 
                 leaderboard = Leaderboard(db)
                 leaderboard.start_leaderboard()
+            case 3:
+                header('Oma pelihistoria', player.get_balance())
+                
+                game_history = GameHistory(db, player)
+                game_history.start_game_history()
             case 5: # TODO dynamically get the last index
                 print(f'\nNäkemiin, {player.get_username()}!')
                 player.save() # save the player's data once more before exiting
