@@ -25,10 +25,16 @@ def main():
     
     clear_terminal()
     
-    name = str(input('Käyttäjänimesi: '))
-    # TODO password input & validation
+    # auth loop
+    while True:
+        name = input('Käyttäjänimesi: ')
+        password = input('Salasana: ')
 
-    player = Player(name, db)
+        try:
+            player = Player(name, password, db)
+            break
+        except Exception as error:
+            print(f'Virheellinen salasana! Yritä uudelleen.\n')
     
     # The main menu (1st level loop)
     while True:
