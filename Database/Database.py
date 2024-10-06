@@ -98,10 +98,12 @@ class Database:
             cursor = self.connection.cursor(**cursor_settings)
             cursor.execute(query, values)
             
+            data_found = cursor.fetchall()
+            
             return {
                 'affected_rows': cursor.rowcount,
-                'result_group': True if cursor.with_rows else False,
-                'result': cursor.fetchall() if fetch else [],
+                'result_group': True if len(data_found) > 0 else False,
+                'result': data_found,
             }
         except Exception as error:
             logging.error(f'Error executing query `{query}`:\n{error}')

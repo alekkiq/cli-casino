@@ -49,7 +49,8 @@ CREATE INDEX idx_game_id_history ON `game_history` (`game_type_id`);
 -- Insert test data into `users` table
 INSERT INTO `users` (`username`, `password`)
 VALUES
-('admin', 'password'),
+-- password is 'password' in sha256
+('admin', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
 ('john_doe', 'P@ssw0rd123'),
 ('jane_smith', 'S3cur3P@ss'),
 ('alice_jones', 'Al1c3J0n3s!'),
