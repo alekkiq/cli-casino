@@ -1,15 +1,34 @@
 import mysql.connector
 import logging
-import hashlib
+from Player.Auth import Auth
 
 class Player:
     '''
     Holds the player's data in a temporary Class, and handles the player's data manipulation.
     The current class is used to update the player's data in the database after/during each singular game.
     '''
-    def __init__(self, username: str, db_handler: object):
+    def __init__(self, username: str, password: str, db_handler: object):
         self.__db = db_handler
-        self.__data = self.__load_existing(username) if self.__load_existing(username) else self.__create_new(username)
+        self.__auth = Auth(db_handler)
+        
+        self.__username = username
+        self.__password = password
+        
+        self.__data = self.__authenticate_or_create_user()
+
+    # Authentication
+    def __authenticate_or_create_user(self):
+        user = self.__auth.authenticate_user(self.__username, self.__password)
+
+        if user:
+            return self.__load_profile(self.__username, self.__password)
+        else:
+            existing_user = self.__auth.check_user_exists(self.__username)
+            
+            if existing_user:
+                raise ValueError("Incorrect password for existing user.")
+            else:
+                return self.__create_profile(self.__username, self.__password)
 
     # Getters
     def get_data(self) -> dict:
@@ -25,7 +44,7 @@ class Player:
         '''
         As is this
         '''
-        return self.__data.get('username', '')
+        return self.__data.get('username')
     
     def get_ban_status(self) -> bool:
         return self.__data.get('is_banned')
@@ -50,21 +69,32 @@ class Player:
         self.__data['is_banned'] = True
 
     # Db methods
-    def __load_existing(self, username: str):
+    def __load_profile(self, username: str, password: str):
         '''
         Handles loading the player's data from the database, if username matches
         '''
         try:
-            user_query = 'SELECT * FROM users WHERE username = %s'
-            profile_query = 'SELECT * FROM user_statistics WHERE user_id = %s'
+            authenticated = self.__auth.authenticate_user(username, password)
+            
+            if not authenticated:
+                return False
+            
+            user_query = '''
+                SELECT * FROM users 
+                WHERE username = %s
+            '''
+            profile_query = '''
+                SELECT * FROM user_statistics 
+                WHERE user_id = %s
+            '''
             
             user_result = self.__db.query(user_query, (username,), cursor_settings={'dictionary': True})
-            user_data = user_result['result']
             
-            if len(user_data) == 0:
+            if not user_result['result_group']:
                 return False
             else:
-                user_data = user_data[0]
+                user_data = user_result['result'][0]
+                
                 profile_result = self.__db.query(profile_query, (user_data['id'],), cursor_settings={'dictionary': True})
                 profile_data = profile_result['result'][0]
                 
@@ -73,36 +103,34 @@ class Player:
             logging.error(f'Error loading player {username} data: {error}')
             return False
 
-    def __create_new(self, username: str, password: str = '') -> dict:
+    def __create_profile(self, username: str, password: str):
         '''
         Handles creating a new player in the database
         '''
-        # TODO password handling
+        new_user = self.__auth.create_user(username, password)
+        
+        print(new_user)
+        
+        if not new_user:
+            return False
+        
         try:
-            user_query = '''
-                INSERT INTO users 
-                (username, password)
-                VALUES (%s, %s)
+            query = '''
+                INSERT INTO user_statistics 
+                    (user_id)
+                VALUES (%s)
             '''
             
-            self.__db.query(user_query, (username, password))
+            self.__db.query(query, (new_user['id'],))
             self.__db.connection.commit()
             
-            user_id = self.__db.query('SELECT LAST_INSERT_ID()')['result'][0][0]
+            logging.info(f'Player `{username}:{new_user['id']}` created successfully')
             
-            profile_query = '''
-                INSERT INTO user_statistics 
-                (user_id)
-                VALUES (%s)
-                '''
-
-            self.__db.query(profile_query, (user_id,))
-            self.__db.connection.commit()
-            
-            logging.info(f'New player `{username}`, id:`{user_id}` created successfully')
-            return self.__load_existing(username)
+            return self.__load_profile(username, password)
+        
         except mysql.connector.Error as error:
-            logging.error(f'Error creating new player {username}: {error}')
+            logging.error(f'Error creating player {username} data: {error}')
+            self.__db.connection.rollback()
             return False
     
     def save(self):
