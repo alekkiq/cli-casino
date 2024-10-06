@@ -47,16 +47,19 @@ class Auth:
             '''
             
             result = self.__db.query(query, (username, hashed_password), cursor_settings={'dictionary': True})
-            print(result)
-            if len(result['result']) > 0:
+
+            if result['result_group']:
                 user = result['result'][0]
-                logging.info(f'User `{username}` authenticated successfully')
-                
-                return {
-                    'id': user['id'],
-                    'username': user['username'],
-                    'password': user['password']
-                }
+                if self.__verify_password(password, user['password']):
+                    logging.info(f'User `{username}` authenticated successfully')
+                    return {
+                        'id': user['id'],
+                        'username': user['username'],
+                        'password': user['password']
+                    }
+                else:
+                    logging.warning(f'Password verification failed for user `{username}`')
+                    return False
             else:
                 return False
         except Exception as error:

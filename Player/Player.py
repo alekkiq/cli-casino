@@ -109,8 +109,6 @@ class Player:
         '''
         new_user = self.__auth.create_user(username, password)
         
-        print(new_user)
-        
         if not new_user:
             return False
         
