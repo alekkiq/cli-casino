@@ -1,11 +1,14 @@
 from config import config
 from Database import Database
 from Player import Player
+from time import sleep
 
 from cli.Leaderboard import Leaderboard
 from cli.GameHistory import GameHistory
+from cli.PlayerProfile import PlayerProfile
 
 from Games.Dice import Dice
+from Games.Roulette import Roulette
 
 logo = r"""
   ____  _      ___    ____     _     ____  ___  _   _   ___
@@ -20,7 +23,7 @@ def main():
     db = Database(
         config = db_configs, 
         connect = True, 
-        setup = True
+        setup = False
     )
     
     clear_terminal()
@@ -39,16 +42,14 @@ def main():
     # The main menu (1st level loop)
     while True:
         header(f'Tervetuloa, {player.get_username()}', player.get_balance())
-        
+         
         main_menu = [
+            'Pelit\n',
             'Tulostaulukot',
             'Oma pelihistoria',
-            'Käyttäjäasetukset',
+            'Profiili\n',
             'Poistu pelistä\n',
         ]
-        
-        if player.get_balance() > 0 and not player.get_ban_status():
-            main_menu.insert(0, 'Pelivalikko\n') # allow the player to do other things, but play games.
         
         for index, choice in enumerate(main_menu, start = 1):
             print(f'{index})  {choice}')
@@ -57,9 +58,15 @@ def main():
         
         match choice:
             case 1: # game selection
+                if player.get_ban_status() == 1:
+                    print('Sinulla on aktiivinen porttikielto, et pääse pelaamaan.\n')
+                    sleep(3)
+                    continue
+                         
+                # TODO leverage the game_types table on this   
                 game_menu = (
                     'Nopanheitto',
-                    # jne.
+                    'Ruletti\n',
                     'Palaa päävalikkoon\n',
                 )
                 
@@ -79,10 +86,16 @@ def main():
                             
                             dice_game = Dice(player, db)
                             dice_game.start_game()
-                        case 2: # back to main menu
+                        case 2: # roulette
+                            header('Ruletti', player.get_balance())
+
+                            roulette_game = Roulette(player, db)
+                            roulette_game.start_game()
+                            break
+                        case 3:
                             break
                         case _:
-                            print(f'Virheellinen valinta! Valitse numerolla {game_menu[0]} - {game_menu[-1]}')
+                            print(f'Virheellinen valinta! Valitse numerolla 1 - {len(game_menu)}')
                 # ...
             case 2:
                 header('Tulostaulukot', player.get_balance())
@@ -94,9 +107,14 @@ def main():
                 
                 game_history = GameHistory(db, player)
                 game_history.start_game_history()
-            case 5: # TODO dynamically get the last index
-                print(f'\nNäkemiin, {player.get_username()}!')
+            case 4:
+                header('Profiili', player.get_balance())
+                
+                player_profile = PlayerProfile(db, player)
+                player_profile.start_player_profile()
+            case _ if choice == len(main_menu):
                 player.save() # save the player's data once more before exiting
+                print(f'\nNäkemiin, {player.get_username()}!')
                 break
             case _: # incorrect input
                 print(f'Virheellinen valinta! Valitse numerolla {main_menu[0]} - {main_menu[-1]}')
