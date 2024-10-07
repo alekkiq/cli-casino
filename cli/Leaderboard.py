@@ -107,7 +107,7 @@ class Leaderboard:
         # Align the columns
         alignment = ['center', 'left'] + ['center'] * (len(headers) - 2)
         
-        print(tabulate.tabulate(rows, headers, tablefmt='pretty', colalign=alignment))
+        print(tabulate.tabulate(rows, headers, tablefmt='fancy_grid', colalign=alignment))
         print(f'10 parasta pelaajaa "{filter}" mukaan {"laskevassa" if sort_order == "DESC" else "nousevassa"} järjestyksessä\n')
         
     def start_leaderboard(self):

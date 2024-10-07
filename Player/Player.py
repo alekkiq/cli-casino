@@ -1,5 +1,6 @@
 import mysql.connector
 import logging
+import hashlib
 from Player.Auth import Auth
 
 class Player:
@@ -47,6 +48,9 @@ class Player:
         return self.__data.get('username')
     
     def get_ban_status(self) -> bool:
+        '''
+        1: banned, 0: not banned
+        '''
         return self.__data.get('is_banned')
 
     # Setters
@@ -131,6 +135,113 @@ class Player:
             self.__db.connection.rollback()
             return False
     
+    def update_username(self, new_name: str):
+        '''
+        Updates the player's username in the database
+        '''
+        try:
+            query = '''
+                UPDATE users SET username = %s WHERE id = %s
+            '''
+            values = (new_name, self.get_data().get('id'))
+            
+            result = self.__db.query(query, values)
+            
+            if result['affected_rows'] > 0:
+                self.__data['username'] = new_name
+                return True
+            else:
+                return False
+        except Exception as error:
+            logging.error(f'Error updating the username of user {self.get_data().get('id', None)}: {error}')
+            return False
+        
+    def update_password(self, new_password: str):
+        '''
+        Updates the player's password in the database
+        '''
+        hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+    
+        try:
+            query = '''
+                UPDATE users SET password = %s WHERE id = %s
+            '''
+            values = (hashed_password, self.get_data().get('id'))
+            
+            result = self.__db.query(query, values)
+            
+            if result['affected_rows'] > 0:
+                self.__data['password'] = hashed_password
+                return True
+            else:
+                return False
+        except Exception as error:
+            logging.error(f'Error updating the password of user {self.get_data().get('id', None)}: {error}')
+            return False
+    
+    def delete_account(self):
+        '''
+        Deletes the player's profile from the database
+        '''
+        try:
+            query_values = (self.get_data().get('id'),)
+            self.__db.begin_transaction()
+            
+            # first, delete the user's statistics
+            query_stats = '''
+                DELETE FROM user_statistics WHERE user_id = %s
+            '''
+            
+            self.__db.query(query_stats, query_values)
+            
+            # then delete the user's game_history
+            query_history = '''
+                DELETE FROM game_history WHERE user_id = %s
+            '''
+            self.__db.query(query_history, query_values)
+            
+            # theeen at last delete the user itself
+            query_user = '''
+                DELETE FROM users WHERE id = %s
+            '''
+            result = self.__db.query(query_user, query_values)
+            
+            self.__db.commit_transaction()
+            
+            if result['affected_rows'] > 0:
+                return True
+            else:
+                return False
+        except Exception as error:
+            self.__db.rollback_transaction() # go back if we encounter an issue
+            logging.error(f'Error deleting the user {self.get_data().get("id", None)}: {error}')
+            return False
+        
+    def unban_account(self, balance_to_set: int):
+        '''
+        Unbans the player's account
+        '''
+        try:
+            query = '''
+                UPDATE user_statistics 
+                SET 
+                    is_banned = 0,
+                    balance = %s
+                WHERE user_id = %s
+            '''
+            values = (balance_to_set, self.get_data().get('id'))
+            result = self.__db.query(query, values)
+            
+            if result['affected_rows'] > 0:
+                self.__data['is_banned'] = False
+                self.__data['balance'] = balance_to_set
+                return True
+            else:
+                return False
+        except Exception as error:
+            logging.error(f'Error unbanning the user {self.get_data().get("id", None)}: {error}')
+            return False
+        
     def save(self):
         '''
         Used for saving the player's data from the temp object to the database

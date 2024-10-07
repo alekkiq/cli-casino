@@ -18,32 +18,27 @@ class Dice:
     '''
     def __init__(self, player: object, db_handler: object):
         self.player = player
-        self.name = 'Dice'
+        self.name = 'Nopanheitto'
         self.rules = 'Pelaaja valitsee itse, kuinka suurta noppaa heittää. Pelaajan tulee sitten arvata nopan oikea silmäluku.'
         self.helpers = GameHelpers(player, {'name': self.name, 'rules': self.rules}, db_handler)
         self.sides = 6 # default value
 
-    def roll_dice(self) -> int:
-        '''
-        Rolls the dice and returns the result
-        '''
+    def _roll_dice(self) -> int:
         return random.randint(1, self.sides)
 
-    def determine_outcome(self, guess: int, roll: int, bet: int) -> int:
-        '''
-        Determines the outcome of the game
-        '''
+    def _determine_outcome(self, guess: int, roll: int, bet: int) -> int:
         return bet * self.sides if guess == roll else 0
 
     def start_game(self) -> dict:
         '''
         Runs the game and returns the player object when done
         '''
-        print(f'Tervetuloa nopanheittoon, {self.player.get_username()}!\n')
-        print(f'Pelin säännöt: {self.rules}\n')
-        
         while True:
-            bet = self.helpers.get_bet()
+            # TODO Header / terminal reload here!!!
+            # eg. header('Nopanheitto', self.player.get_balance())
+            self.helpers.game_intro(self.player.get_username())
+
+            bet = self.helpers.get_bet(self.player.get_balance())
             self.sides = int(input(f'Montako sivua nopassa on: '))
 
             if self.sides < 2:
@@ -51,13 +46,14 @@ class Dice:
                 continue
 
             guess = int(input(f'Syötä arvauksesi (1 - {self.sides}): '))
-            roll = self.roll_dice()
+            roll = self._roll_dice()
             
-            outcome = self.determine_outcome(guess, roll, bet)
+            outcome = self._determine_outcome(guess, roll, bet)
+            net_winnings = outcome - bet
             game_won = outcome > 0
 
             if outcome > 0:
-                print(f'\nOnnittelut! Arvasit oikein! Voitit {outcome} pistettä!\n')
+                print(f'\nOnnittelut! Arvasit oikein! Voitit {net_winnings} pistettä!\n')
             else:
                 print(f'\nHävisit pelin. Oikea arvo oli {roll}.\n')
                 
@@ -67,7 +63,7 @@ class Dice:
             # Save the game to the database
             self.helpers.save_game_to_history(bet = bet, win_amount = outcome)
             
-            if not self.helpers.play_again():
+            if not self.helpers.play_again(self.player.get_balance()):
                 break
 
         return self.player # return the updated player object

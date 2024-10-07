@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import shutil
 
 class GameHelpers:
     '''
@@ -17,18 +18,30 @@ class GameHelpers:
         self.create_game_type()
 
     # Game related methods
-    def get_bet(self) -> int:
-        bet = int(input('\nPanos: '))
+    def get_bet(self, balance: int, bet_to_text: str = None) -> int:
+        if not bet_to_text:
+            bet = input(f'Tämänhetkinen saldo: {balance}\nPanos (syötä tyhjä peruuttaaksesi): ')
+        else:
+            bet = input(f'Tämänhetkinen saldo: {balance}\n{bet_to_text} (syötä tyhjä peruuttaaksesi): ')
+
+        if bet == '' or int(bet) == 0:
+            return 0
         
-        if bet <= self.player.get_balance():
+        if not bet.isdigit():
+            print('Virheellinen syöte. Syötä numero.')
+            return self.get_bet(balance)
+        
+        bet = int(bet)
+        
+        if bet <= balance:
             self.player.update_balance(-bet)
             return bet
         else:
             print(f'Saldosi on vajaa! Syötä sopiva määrä.\nSaldo: {self.player.get_balance()}')
-            return self.get_bet()
+            return self.get_bet(balance)
         
-    def play_again(self) -> bool:
-        if self.player.get_balance() <= 0:
+    def play_again(self, balance: str) -> bool:
+        if balance <= 0:
             print(f'Saldo ei riitä. Peli päättyi.\n')
             return False
     
@@ -41,8 +54,55 @@ class GameHelpers:
                 return False
             case _:
                 print(f'Virheellinen syöte. Syötä k tai e.')
-                return self.play_again()
+                return self.play_again(balance)
+    
+    def game_intro(self, username: str):
+        print(f'Tervetuloa {self.game_info.get("name")}-peliin, {username}!\n\n')
+        print(f'Pelin säännöt:')
+        self.box_wrapper(self.game_info.get('rules'))
+        
+    def box_wrapper(self, text: str, min_width: int = 75, max_width: int = 75):
+        '''
+        Creates a nice box-like wrapper for a wanted text.
+        Used in displaying the game rules, for example
+        
+        Could be located elsewhere tho - TODO
+        '''
+        terminal_width = shutil.get_terminal_size().columns
+        padding = 4 # padding on both sides
+        
+        # Fix the max width to the terminal width
+        if terminal_width < max_width:
+            max_width = terminal_width - padding
+        
+        paragraphs = text.split('\n')
+        wrapped_lines = []
 
+        for paragraph in paragraphs:
+            words = paragraph.split()
+            current_line = ""
+
+            for word in words:
+                if len(current_line) + len(word) + 1 <= max_width:
+                    current_line += (word + " ")
+                else:
+                    wrapped_lines.append(current_line.strip())
+                    current_line = word + " "
+            wrapped_lines.append(current_line.strip())
+
+        # Determine the width of the box
+        box_width = max(max(len(line) for line in wrapped_lines) + padding, min_width)
+
+        # Print the top border
+        print('+' + '-' * box_width + '+')
+
+        # Print each line within the box
+        for line in wrapped_lines:
+            print(f'| {line.ljust(box_width - padding//2)} |')
+
+        # Print the bottom border
+        print('+' + '-' * box_width + '+\n')
+        
     # Database related methods
     def create_game_type(self):
         '''
@@ -90,7 +150,6 @@ class GameHelpers:
         '''
         Saves the game to the database. Returns success state boolean
         '''
-        # TODO - save the game to the "game_history" table
         try:
             query = '''
                 INSERT INTO game_history
@@ -109,8 +168,6 @@ class GameHelpers:
                 return True
             else:
                 raise Exception('Unexpected error saving the game')
-            
-            # TODO
         except Exception as error:
             logging.error(f'Error saving the game: {error}')
             return False

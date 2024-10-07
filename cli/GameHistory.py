@@ -61,7 +61,7 @@ class GameHistory:
             logging.error(f'Error getting the game history: {error}')
             return []
         
-    def print_table(self, data: list):
+    def print_table(self, data: list = []):
         '''
         Prints the game history in a table
         '''
