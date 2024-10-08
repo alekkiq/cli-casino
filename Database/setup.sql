@@ -80,12 +80,12 @@ VALUES
 ('oliver_clark', '0l1v3rCl@rk'),
 ('paula_roberts', 'P@ul@R0b3rts'),
 ('quentin_walker', 'Qu3nt1nW@lk3r'),
-('rachel_hall', 'R@ch3lH@ll!');
+('testbanned', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8');
 
 -- Insert test data into `user_statistics` table
 INSERT INTO `user_statistics` (`user_id`, `balance`, `total_winnings`, `games_played`, `games_won`, `games_lost`, `is_banned`)
 VALUES
-(1, 1000, 500, 10, 5, 5, 0),
+(1, 9999999, 500, 10, 5, 5, 0),
 (2, 2000, 1500, 20, 15, 5, 0),
 (3, 3000, 2500, 30, 25, 5, 0),
 (4, 4000, 3500, 40, 35, 5, 0),
@@ -104,4 +104,5 @@ VALUES
 (17, 17000, 16500, 170, 165, 5, 0),
 (18, 18000, 17500, 180, 175, 5, 0),
 (19, 19000, 18500, 190, 185, 5, 0),
-(20, 20000, 19500, 200, 195, 5, 0);
+(20, 20000, 19500, 200, 195, 5, 0),
+(21, 16000, 25000, 100, 40, 20, 1);

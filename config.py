@@ -12,6 +12,5 @@ def config() -> dict:
         'db_name': os.getenv('DB_NAME', 'cli_casino'),
         'autocommit': bool(os.getenv('DB_AUTOCOMMIT', False)),
         'collation': 'utf8mb4_general_ci',
-        'setup_db': bool(os.getenv('DB_SETUP', False)),
-        'setup_file': os.getenv('DB_SETUP_FILE', None)
+        'setup_file': os.getenv('DB_SETUP_FILE', 'setup.sql')
     }
