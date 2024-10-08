@@ -58,6 +58,8 @@ def main():
         
         match choice:
             case 1: # game selection
+                # Should very well be its own function
+                
                 if player.get_ban_status() == 1:
                     print('Sinulla on aktiivinen porttikielto, et pääse pelaamaan.\n')
                     sleep(3)
@@ -81,29 +83,29 @@ def main():
                         continue
                     
                     selected_game = game_menu[game_choice - 1][1]
+                    selected_game_name = game_menu[game_choice - 1][0]
+                    
+                    header(selected_game_name.capitalize(), player.get_balance())
                     
                     match selected_game:
                         case 'dice':
-                            header('Nopanheitto', player.get_balance())
                             dice_game = Dice(player, db)
                             dice_game.start_game()
                         case 'roulette':
-                            header('Ruletti', player.get_balance())
                             roulette_game = Roulette(player, db)
                             roulette_game.start_game()
                         case 'twentyone':
-                            header('Ventti', player.get_balance())
+                            pass
                             # twenty_one_game = TwentyOne(player, db)
                             # twenty_one_game.start_game()
                         case 'slots':
-                            header('Hedelmäpeli', player.get_balance())
+                            pass
                             # slots_game = Slots(player, db)
                             # slots_game.start_game()
                         case 'back': # back to the main menu
                             break
                         case _:
                             print(f'Virheellinen valinta! Valitse numerolla 1 - {len(game_menu)}')
-                # ...
             case 2:
                 header('Tulostaulukot', player.get_balance())
                 
