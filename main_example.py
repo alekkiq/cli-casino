@@ -42,7 +42,7 @@ def main():
     # The main menu (1st level loop)
     while True:
         header(f'Tervetuloa, {player.get_username()}', player.get_balance())
-         
+        
         main_menu = [
             'Pelit\n',
             'Tulostaulukot',
@@ -63,36 +63,47 @@ def main():
                     sleep(3)
                     continue
                          
-                # TODO leverage the game_types table on this   
-                game_menu = (
-                    'Nopanheitto',
-                    'Ruletti\n',
-                    'Palaa päävalikkoon\n',
-                )
+                # get the game types from the d
+                game_menu = get_game_menu(db)
                 
                 # Sub menu, eg. game selection (2nd level loop)
                 while True:
                     header('Valitse peli', player.get_balance())
                     
                     # 2nd level loop -> eg. game selection
-                    for index, game in enumerate(game_menu, start=1):
-                        print(f'{index})  {game}')
-                            
+                    for index, (game_name, _) in enumerate(game_menu, start=1):
+                        print(f'{index})  {game_name}')
+                    
                     game_choice = int(input(f'\nValitse peli (1 - {len(game_menu)}): '))
                     
-                    match game_choice:
-                        case 1: # dice
+                    if game_choice < 1 or game_choice > len(game_menu):
+                        print(f'Virheellinen valinta! Valitse numerolla 1 - {len(game_menu)}')
+                        continue
+                    
+                    selected_game = game_menu[game_choice - 1][1]
+                    
+                    match selected_game:
+                        case 'dice':
                             header('Nopanheitto', player.get_balance())
-                            
                             dice_game = Dice(player, db)
                             dice_game.start_game()
-                        case 2: # roulette
+                            break
+                        case 'roulette':
                             header('Ruletti', player.get_balance())
-
                             roulette_game = Roulette(player, db)
                             roulette_game.start_game()
                             break
-                        case 3:
+                        case 'twentyone':
+                            header('Ventti', player.get_balance())
+                            # twenty_one_game = TwentyOne(player, db)
+                            # twenty_one_game.start_game()
+                            break
+                        case 'slots':
+                            header('Hedelmäpeli', player.get_balance())
+                            # slots_game = Slots(player, db)
+                            # slots_game.start_game()
+                            break
+                        case 'back': # back to the main menu
                             break
                         case _:
                             print(f'Virheellinen valinta! Valitse numerolla 1 - {len(game_menu)}')
@@ -120,6 +131,24 @@ def main():
                 print(f'Virheellinen valinta! Valitse numerolla {main_menu[0]} - {main_menu[-1]}')
     
 # helpers
+def get_game_menu(db) -> list:
+    '''
+    Gets the game types from the database and returns their names and classes as a list of tuples
+    '''
+    back_to_menu = ('Palaa päävalikkoon\n', 'back')
+    try:
+        result = db.query('''SELECT name, name_en FROM game_types''', cursor_settings = {'dictionary': True})
+        
+        if result['result_group']:
+            game_types = [(game['name'].capitalize(), game['name_en']) for game in result['result']]
+            game_types.append(back_to_menu)
+            game_types[-2] = (game_types[-2][0] + '\n', game_types[-2][1]) # add a newline to the 2nd last item to isolate the last one
+            return game_types
+        else:
+            return [back_to_menu]
+    except Exception as error:
+        return [back_to_menu]
+    
 def clear_terminal():
     '''
     Clears the terminal, and prints the logo
