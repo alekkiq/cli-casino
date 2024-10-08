@@ -32,7 +32,8 @@ class Database:
                 user = self.config['db_user'],
                 password = self.config['db_pass'],
                 autocommit = self.config['autocommit'],
-                collation = self.config['collation'],
+                collation = self.config.get('collation', 'utf8mb4_unicode_ci'),
+                charset = 'utf8mb4',
                 database = self.config.get('db_name', None)
             )
         except mysql.connector.Error as connection_error:
@@ -63,7 +64,7 @@ class Database:
             return False
         
         try:
-            with open(get_file_path(self.setup_file), 'r') as setup_file:
+            with open(get_file_path(self.setup_file), 'r', encoding='utf-8') as setup_file:
                 setup_script = setup_file.read()
                 self.execute_script(setup_script)
                 

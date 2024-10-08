@@ -1,8 +1,6 @@
 DROP DATABASE IF EXISTS `cli_casino`;
-CREATE DATABASE `cli_casino`;
+CREATE DATABASE `cli_casino` CHARACTER SET `utf8mb4` COLLATE `utf8mb4_unicode_ci`;
 USE `cli_casino`;
-
-ALTER DATABASE `cli_casino` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Tables
 CREATE TABLE `users` (
@@ -11,7 +9,7 @@ CREATE TABLE `users` (
   `password` VARCHAR(255) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARACTER SET `utf8mb4` COLLATE `utf8mb4_unicode_ci`;
 
 CREATE TABLE `user_statistics` (
   `user_id` INTEGER PRIMARY KEY,
@@ -22,14 +20,14 @@ CREATE TABLE `user_statistics` (
   `games_lost` INTEGER DEFAULT 0,
   `is_banned` BOOLEAN DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARACTER SET `utf8mb4` COLLATE `utf8mb4_unicode_ci`;
 
 CREATE TABLE `game_types` (
   `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
   `name` VARCHAR(50) NOT NULL UNIQUE,
   `name_en` VARCHAR(50) NOT NULL UNIQUE,
   `rules` TEXT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARACTER SET `utf8mb4` COLLATE `utf8mb4_unicode_ci`;
 
 CREATE TABLE `game_history` (
   `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -40,7 +38,7 @@ CREATE TABLE `game_history` (
   `game_type_id` INTEGER NOT NULL,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   FOREIGN KEY (`game_type_id`) REFERENCES `game_types` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARACTER SET `utf8mb4` COLLATE `utf8mb4_unicode_ci`;
 
 -- Indexes
 CREATE INDEX idx_user_id_history ON `game_history` (`user_id`);
