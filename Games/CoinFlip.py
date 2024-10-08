@@ -38,7 +38,7 @@ class CoinFlip:
             guess = self.helpers.validate_input('\nArvaa kruuna vai klaava (k/c): ', 'str', 'k', 'c')
             
             flip = self._flip_coin()
-            print(f'\nKolikonheiton tulos: {flip[1]} {flip[2]}\n')
+            print(f'\nKolikonheiton tulos: {flip[1].capitalize()} {flip[2]}')
             
             outcome = self._determine_outcome(guess, flip, bet)
             game_won = outcome > 0
