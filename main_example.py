@@ -1,7 +1,9 @@
+import argparse
+from time import sleep
+
 from config import config
 from Database import Database
 from Player import Player
-from time import sleep
 
 from cli.Leaderboard import Leaderboard
 from cli.GameHistory import GameHistory
@@ -22,8 +24,7 @@ def main():
     db_configs = config()
     db = Database(
         config = db_configs, 
-        connect = True, 
-        setup = False
+        connect = True,
     )
     
     clear_terminal()
@@ -162,5 +163,30 @@ def header(text: str, balance: int) -> None:
     clear_terminal()
     return print(f'{text}  |  Saldo: {balance}\n\n')
 
+def setup_database():
+    '''
+    Sets up the database
+    '''
+    db_configs = config()
+    db = Database(
+        config = db_configs, 
+        connect = True, 
+        setup = True
+    )
+    db.connection.close()
+    return True
+
 if __name__ == '__main__':
-    main() # Run the app
+    parser = argparse.ArgumentParser(description="CLI Casino")
+    parser.add_argument('--setup', action='store_true', help='Start the casino with the setup for the database')
+    args = parser.parse_args()
+    
+    if args.setup:
+        print('Setting up the database...')
+        
+        if setup_database():
+            print('Database setup complete')
+        else:
+            print('Database setup failed')
+    else:
+        main()
