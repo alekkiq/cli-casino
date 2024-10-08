@@ -87,22 +87,18 @@ def main():
                             header('Nopanheitto', player.get_balance())
                             dice_game = Dice(player, db)
                             dice_game.start_game()
-                            break
                         case 'roulette':
                             header('Ruletti', player.get_balance())
                             roulette_game = Roulette(player, db)
                             roulette_game.start_game()
-                            break
                         case 'twentyone':
                             header('Ventti', player.get_balance())
                             # twenty_one_game = TwentyOne(player, db)
                             # twenty_one_game.start_game()
-                            break
                         case 'slots':
                             header('Hedelmäpeli', player.get_balance())
                             # slots_game = Slots(player, db)
                             # slots_game.start_game()
-                            break
                         case 'back': # back to the main menu
                             break
                         case _:
