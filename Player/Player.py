@@ -39,7 +39,7 @@ class Player:
         '''
         Needed so frequently that it's worth having a separate method for it
         '''
-        return self.__data.get('balance')
+        return int(self.__data.get('balance'))
     
     def get_username(self) -> str:
         '''

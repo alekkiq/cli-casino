@@ -51,7 +51,7 @@ VALUES
   ('nopanheitto', 'dice', 'Pelaaja valitsee itse, kuinka suurta noppaa heittää. Pelaajan tulee sitten arvata nopan oikea silmäluku.\n\n- Voittokerroin on silmälukujen lukumäärä'),
   ('ruletti', 'roulette', 'Pelaaja arvaa värin sekä halutessaan kahta numeroa. Pelaaja asettaa jokaiselle arvaukselle (väri sekä numerot) oman erillisen panoksensa.\n\n- Numeroarvauksen voittokerroin = 36x\n- Väriarvauksen = 2x'),
   ('ventti', 'twentyone', 'Pelaaja saa kaksi korttia, joista toinen on piilotettu. Pelaaja voi joko jäädä tai ottaa lisää kortteja. Tavoitteena on saada korttien summa mahdollisimman lähelle 21:ä, mutta ei yli. Pelaaja voittaa, jos hänen korttiensa summa on suurempi kuin jakajan korttien summa, mutta ei yli 21:ä.\n\n- Voittokerroin = 2x'),
-  ('hedelmäpeli', 'slots', 'Pelaaja asettaa panoksen ja painaa pelinappia. Pelissä on 4 rullaa, joissa on erilaisia symboleja. Jos rullat pysähtyvät samoihin symboleihin, pelaaja voittaa.');
+  ('hedelmäpeli', 'slots', 'Pelaaja asettaa panoksen ja painaa pelinappia. Pelissä on 4 rullaa, joissa on erilaisia symboleja. Jos rullat pysähtyvät samoihin symboleihin, pelaaja voittaa.\n\nVoittokertoimet:\n- 2 vierekkäistä symbolia = 1.5x\n- 3 vierekkäistä symbolia = 4x\n- 4 vierekkäistä symbolia = 16x');
 
 -- Test data TODO remove
 -- Insert test data into `users` table

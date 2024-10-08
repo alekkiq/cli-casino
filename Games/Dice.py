@@ -17,7 +17,7 @@ class Dice:
     def _determine_outcome(self, guess: int, roll: int, bet: int) -> int:
         return bet * self.sides if guess == roll else 0
 
-    def start_game(self) -> dict:
+    def start_game(self) -> object:
         '''
         Runs the game and returns the player object when done
         '''
@@ -38,11 +38,10 @@ class Dice:
             roll = self._roll_dice()
             
             outcome = self._determine_outcome(guess, roll, bet)
-            net_winnings = outcome - bet
             game_won = outcome > 0
 
-            if outcome > 0:
-                print(f'\nOnnittelut! Arvasit oikein! Voitit {net_winnings} pistettä!\n')
+            if game_won:
+                print(f'\nOnnittelut! Arvasit oikein! Voitit {outcome - bet} pistettä!\n')
             else:
                 print(f'\nHävisit pelin. Oikea arvo oli {roll}.\n')
                 
