@@ -9,13 +9,10 @@ class GameHelpers:
     Attributes:
         player (dict): The current player object
     '''
-    def __init__(self, player: object, game_info: dict, db_handler: object):
+    def __init__(self, player: object, db_handler: object, game_type_name: str):
         self.player = player # the whole class with the methods included
         self.db = db_handler
-        self.game_info = game_info
-        
-        # Create the game type in the database
-        self.create_game_type()
+        self.game_type_record = self.__get_game_type_record(key = 'name_en', value = game_type_name)
 
     # Game related methods
     def get_bet(self, balance: int, bet_to_text: str = None) -> int:
@@ -104,21 +101,23 @@ class GameHelpers:
         print('+' + '-' * box_width + '+\n')
         
     # Database related methods
-    def create_game_type(self):
+    def __get_game_type_record(self, key: str = 'name_en', value: str = None):
         '''
         Creates a new game type in the database. References the class name as the game type name
         '''
         try:
-            exists_query = 'SELECT * FROM game_types WHERE name = %s'
-            check_existance = self.db.query(exists_query, (self.game_info.get('name'),), cursor_settings={'dictionary': True})
+            query = '''
+                SELECT * FROM game_types WHERE %s = %s
+            '''
+            values = (key, value)
             
-            if len(check_existance['result']) > 0:
-                return
+            result = self.db.query(query, values, cursor_settings={'dictionary': True})
             
-            query = 'INSERT INTO game_types (name, rules) VALUES (%s, %s)'
-            values = (self.game_info.get('name'), self.game_info.get('rules'))
-            
-            self.db.query(query, values)
+            if result['result_group'] > 0:
+                game_type_record = result['result'][0]
+                return game_type_record
+            else:
+                return False
         except Exception as error:
             logging.error(f'Error creating the game type: {error}')
             return False

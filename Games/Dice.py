@@ -18,9 +18,7 @@ class Dice:
     '''
     def __init__(self, player: object, db_handler: object):
         self.player = player
-        self.name = 'Nopanheitto'
-        self.rules = 'Pelaaja valitsee itse, kuinka suurta noppaa heittää. Pelaajan tulee sitten arvata nopan oikea silmäluku.'
-        self.helpers = GameHelpers(player, {'name': self.name, 'rules': self.rules}, db_handler)
+        self.helpers = GameHelpers(player, db_handler, 'dice')
         self.sides = 6 # default value
 
     def _roll_dice(self) -> int:

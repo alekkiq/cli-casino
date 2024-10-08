@@ -10,9 +10,7 @@ class Roulette:
     '''
     def __init__(self, player: object, db_handler: object):
         self.player = player
-        self.name = 'Ruletti'
-        self.rules = 'Pelaaja arvaa värin sekä halutessaan kahta numeroa. Pelaaja asettaa jokaiselle arvaukselle (väri sekä numerot) oman erillisen panoksensa.\n\n- Numeroarvauksen voittokerroin = 36x\n- Väriarvauksen = 2x'
-        self.helpers = GameHelpers(player, {'name': self.name, 'rules': self.rules}, db_handler)
+        self.helpers = GameHelpers(player, db_handler, 'roulette')
         
         # betting options
         self.colors = {
