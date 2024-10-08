@@ -16,7 +16,7 @@ class CoinFlip:
         return random.choice(self.coin_sides)
     
     def _determine_outcome(self, guess: str, flip: str, bet: int) -> int:
-        return bet * 2 if guess == flip else 0
+        return bet * 2 if guess == flip[0] else 0
     
     def start_game(self) -> object:
         '''
@@ -38,7 +38,7 @@ class CoinFlip:
             guess = self.helpers.validate_input('\nArvaa kruuna vai klaava (k/c): ', 'str', 'k', 'c')
             
             flip = self._flip_coin()
-            print(f'\nKolikonheiton tulos: {flip}\n')
+            print(f'\nKolikonheiton tulos: {flip[1]} {flip[2]}\n')
             
             outcome = self._determine_outcome(guess, flip, bet)
             game_won = outcome > 0
@@ -47,7 +47,7 @@ class CoinFlip:
             if game_won:
                 print(f'\nOnnittelut! Arvasit oikein! Voitit {outcome} pistettä!\n')
             else:
-                print(f'\nHävisit pelin. Kone arpoi {flip}.\n')
+                print(f'\nHävisit pelin.\n')
             
             # Bulk-update the player values
             self.helpers.update_player_values(game_won, net_outcome, save = True)
