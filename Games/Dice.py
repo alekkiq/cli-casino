@@ -5,16 +5,6 @@ class Dice:
     '''
     Game: Dice
     Description: The simplest dice game, where the player determines the number of sides on the dice and then guesses a value of the rolled dice.
-
-    Examples:
-        dice_game = Dice({'id': 2, 'username': 'John', 'balance': 125})\n
-        dice_game.startGame()
-    Attributes:
-        player (str): The name of the player
-        rules (str): The rules of the game
-        sides (int): The number of sides on the dice
-        max_dice (int): The maximum number of dice that can be rolled
-        dice_sum (int): The sum of the dice rolls
     '''
     def __init__(self, player: object, db_handler: object):
         self.player = player
@@ -35,15 +25,16 @@ class Dice:
             # TODO Header / terminal reload here!!!
             # eg. header('Nopanheitto', self.player.get_balance())
             self.helpers.game_intro(self.player.get_username())
-
+            
+            # check if the player wants to play the game or not
+            if not self.helpers.play_game():
+                break
+            
+            # get the bet, amount of sides & the guess
             bet = self.helpers.get_bet(self.player.get_balance())
-            self.sides = int(input(f'Montako sivua nopassa on: '))
-
-            if self.sides < 2:
-                print('Nopassa on oltava yli 2 sivua. Syötä muu luku.\n')
-                continue
-
-            guess = int(input(f'Syötä arvauksesi (1 - {self.sides}): '))
+            self.sides = self.helpers.validate_input('\nKuinka monta sivua nopassa on (2 - 20): ', 'int', 2, 20)
+            guess = self.helpers.validate_input(f'\nArvaa nopan arvo (1 - {self.sides}): ', 'int', 1, self.sides)
+            
             roll = self._roll_dice()
             
             outcome = self._determine_outcome(guess, roll, bet)

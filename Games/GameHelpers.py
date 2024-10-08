@@ -13,19 +13,69 @@ class GameHelpers:
         self.player = player # the whole class with the methods included
         self.db = db_handler
         self.game_type_record = self.__get_game_type_record(key = 'name_en', value = game_type_name)
-
+        self.game_info = {
+            'name': self.game_type_record.get('name'),
+            'rules': self.game_type_record.get('rules')
+        }
+        
+    # --------------------
     # Game related methods
+    # --------------------
+    def play_game(self):
+        '''
+        Before starting the main loop, asks the player if they want to play the game
+        '''
+        play_game = input(f'Haluatko pelata peliä (k / e): ').lower()
+        
+        match play_game:
+            case 'k':
+                return True
+            case 'e':
+                return False
+            case _:
+                print('Virheellinen syöte. Syötä k tai e.')
+                return self.play_game()
+
+    def validate_input(self, prompt: str, input_type: str, min_value: int = None, max_value: int = None, allowed_values: tuple = None, allow_empty: bool = False):
+        '''
+        Validates the input based on the type and constraints provided
+        '''
+        while True:
+            input_value = input(prompt)
+            
+            if allow_empty and input_value == '':
+                return None
+            
+            if input_type == 'int':
+                try:
+                    value = int(input_value)
+                    if (min_value is not None and value < min_value) or (max_value is not None and value > max_value):
+                        print(f'\nArvon on oltava {min_value} - {max_value}\n')
+                    else:
+                        return value
+                except ValueError:
+                    print('\nVirheellinen syöte! Syötä numero!\n')
+            
+            elif input_type == 'str':
+                if allowed_values and input_value.lower() not in allowed_values:
+                    print(f'\nValinnan on oltava {"/".join(allowed_values)}.')
+                else:
+                    return input_value.lower()
+            
+            else:
+                print('Syötteen tyyppi on virheellinen.\n')
+            
     def get_bet(self, balance: int, bet_to_text: str = None) -> int:
         if not bet_to_text:
-            bet = input(f'Tämänhetkinen saldo: {balance}\nPanos (syötä tyhjä peruuttaaksesi): ')
+            bet = input(f'\nTämänhetkinen saldo: {balance}\nPanos (syötä tyhjä peruuttaaksesi): ')
         else:
-            bet = input(f'Tämänhetkinen saldo: {balance}\n{bet_to_text} (syötä tyhjä peruuttaaksesi): ')
+            bet = input(f'\nTämänhetkinen saldo: {balance}\n{bet_to_text} (syötä tyhjä peruuttaaksesi): ')
 
         if bet == '' or int(bet) == 0:
             return 0
         
         if not bet.isdigit():
-            print('Virheellinen syöte. Syötä numero.')
+            print('\nVirheellinen syöte. Syötä numero.\n')
             return self.get_bet(balance)
         
         bet = int(bet)
@@ -99,19 +149,20 @@ class GameHelpers:
 
         # Print the bottom border
         print('+' + '-' * box_width + '+\n')
-        
+    
+    # ------------------------
     # Database related methods
+    # ------------------------
     def __get_game_type_record(self, key: str = 'name_en', value: str = None):
         '''
         Creates a new game type in the database. References the class name as the game type name
         '''
         try:
             query = '''
-                SELECT * FROM game_types WHERE %s = %s
-            '''
-            values = (key, value)
+                SELECT * FROM game_types WHERE {} = %s
+            '''.format(key)
             
-            result = self.db.query(query, values, cursor_settings={'dictionary': True})
+            result = self.db.query(query, (value,), cursor_settings={'dictionary': True})
             
             if result['result_group'] > 0:
                 game_type_record = result['result'][0]

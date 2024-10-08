@@ -67,31 +67,6 @@ class Roulette:
         
         return roll
 
-    def _validate_guesses(self, number_guesses, color_guess) -> bool:
-        print('\n')
-
-        # Check if at least one guess is provided
-        if not number_guesses and not color_guess:
-            print('Sinun tulee syöttää joko numeroarvaus tai väriarvaus.\n')
-            return False
-
-        # Validate number guesses
-        for i, number_guess in enumerate(number_guesses):
-            if number_guess:
-                if not number_guess.isdigit():
-                    print(f'Numeroarvaus {i + 1} on virheellinen. Syötä numero 0 - 36.\n')
-                    return False
-                if not 0 <= int(number_guess) <= 36:
-                    print(f'Numeroarvaus {i + 1} on virheellinen. Syötä numero 0 - 36.\n')
-                    return False
-
-        # Validate color guess
-        if color_guess and color_guess.lower() not in ['p', 'm']:
-            print('Väriarvaus on virheellinen. Syötä p (punainen) tai m (musta).\n')
-            return False
-
-        return True
-        
     def _determine_outcome(self, number_guesses, number_bets, color_guess, color_bet, roll: int) -> int:
         total_winnings = 0
 
@@ -117,26 +92,40 @@ class Roulette:
             self.helpers.game_intro(self.player.get_username())
             
             # print the last 20 rolls (randomly created at this point of time, will get updated when the game is played)
-            self._print_history()    
+            self._print_history()
             
-            color_guess = input(f'\nVäriarvaus\nSyötä tyhjä, jos arvaat vain numeroa. (p/m): ')
-            number_guesses = [input(f'\nNumeroarvaus {i+1}\nSyötä tyhjä, jos arvaat vain väriä.\n(0 - 36): ') for i in range(2)]
-
-            if not self._validate_guesses(number_guesses, color_guess):
-                sleep(3) # wait for a few seconds before continuing, so the player can read the error messages
-                continue
+            # check if the player wants to play the game or not
+            if not self.helpers.play_game():
+                break
+            
+            # get the guesses
+            color_guess = self.helpers.validate_input(f'\nVäriarvaus\nSyötä tyhjä, jos arvaat vain numeroa. (p/m): ', 'str', allowed_values = ['p', 'm', ''])
+            number_guesses = [
+                self.helpers.validate_input(
+                    prompt = f'\nNumeroarvaus {i+1}\nSyötä tyhjä, jos arvaat vain väriä.\n(0 - 36): ',
+                    input_type = 'int',
+                    min_value = 0,
+                    max_value = 36,
+                    allow_empty = True
+                ) for i in range(self.number_guesses)
+            ]
+            
+            # allow the player to exit the game before betting
+            if not any(number_guesses) and color_guess == '':
+                break
 
             # get separate bets for each guess
-            if not any(number_guesses): # if no number guesses, ask for a color bet
+            color_bet = self.helpers.get_bet(self.player.get_balance(), 'Panos väriarvaukselle')
+            
+            if not any(number_guesses):
                 number_bets = [0, 0]
-                color_bet = self.helpers.get_bet(self.player.get_balance(), 'Panos väriarvaukselle')
             else:
-                number_bets = [self.helpers.get_bet(self.player.get_balance(), f'Panos numeroarvaukselle {i+1} ({number_guesses[i]})') for i in range(2)]
-                color_bet = self.helpers.get_bet(self.player.get_balance(), 'Panos väriarvaukselle')
+                number_bets = [self.helpers.get_bet(self.player.get_balance(), f'Panos numeroarvaukselle {i+1} ({number_guesses[i]})') for i in range(self.number_guesses)]
 
             total_bet = sum(number_bets) + color_bet
 
-            if total_bet == 0: # allow the player to exit the game before betting
+            # one more opportunity to exit the game before spinning the wheel
+            if total_bet == 0:
                 break
 
             roll = self._spin_wheel()
@@ -145,9 +134,8 @@ class Roulette:
             outcome = self._determine_outcome(number_guesses, number_bets, color_guess, color_bet, roll)
             game_won = outcome > 0
 
-            # print the right outcome message
+            # print the right outcome message based on correct guesses
             if game_won:
-                # check which guess was correct
                 if color_guess == roll['color'] and not any(number_guess == str(roll['number']) for number_guess in number_guesses):
                     print(f'\nVäriarvaus oli oikein! Voitit {outcome - total_bet} pistettä!\n')
                 elif any(number_guess == str(roll['number']) for number_guess in number_guesses) and not color_guess == roll['color']:
