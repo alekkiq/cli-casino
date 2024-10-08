@@ -11,6 +11,7 @@ from cli.PlayerProfile import PlayerProfile
 
 from Games.Dice import Dice
 from Games.Roulette import Roulette
+from Games.CoinFlip import CoinFlip
 
 logo = r"""
   ____  _      ___    ____     _     ____  ___  _   _   ___
@@ -76,6 +77,9 @@ def main():
                     # 2nd level loop -> eg. game selection
                     for index, (game_name, _) in enumerate(game_menu, start=1):
                         print(f'{index})  {game_name}')
+                        
+                        if index == len(game_menu) - 1:
+                            print()
                     
                     game_choice = int(input(f'\nValitse peli (1 - {len(game_menu)}): '))
                     
@@ -101,8 +105,11 @@ def main():
                             # twenty_one_game.start_game()
                         case 'slots':
                             pass
-                            # slots_game = Slots(player, db)
-                            # slots_game.start_game()
+                            #slots_game = Slots(player, db)
+                            #slots_game.start_game()
+                        case 'coinflip':
+                            coinflip_game = CoinFlip(player, db)
+                            coinflip_game.start_game()
                         case 'back': # back to the main menu
                             break
                         case _:
@@ -141,7 +148,6 @@ def get_game_menu(db) -> list:
         if result['result_group']:
             game_types = [(game['name'].capitalize(), game['name_en']) for game in result['result']]
             game_types.append(back_to_menu)
-            game_types[-2] = (game_types[-2][0] + '\n', game_types[-2][1]) # add a newline to the 2nd last item to isolate the last one
             return game_types
         else:
             return [back_to_menu]
