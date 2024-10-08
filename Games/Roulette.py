@@ -133,11 +133,12 @@ class Roulette:
             
             outcome = self._determine_outcome(number_guesses, number_bets, color_guess, color_bet, roll)
             game_won = outcome > 0
+            net_outcome = outcome - total_bet
 
             # print the right outcome message based on correct guesses
             if game_won:
                 if color_guess == roll['color'] and not any(number_guess == str(roll['number']) for number_guess in number_guesses):
-                    print(f'\nVäriarvaus oli oikein! Voitit {outcome - total_bet} pistettä!\n')
+                    print(f'\nVäriarvaus oli oikein! Voitit {outcome} pistettä!\n')
                 elif any(number_guess == str(roll['number']) for number_guess in number_guesses) and not color_guess == roll['color']:
                     print(f'\nNumeroarvaus oli oikein! Voitit {outcome} pistettä!\n')
                 else:
@@ -146,10 +147,10 @@ class Roulette:
                 print(f'\nArvaukset menivät pieleen. Parempi onni ensi kerralla!\n')
                 
             # Bulk-update the player values
-            self.helpers.update_player_values(game_won, outcome, save = True)
+            self.helpers.update_player_values(game_won, net_outcome, save = True)
             
             # Save the game to the database
-            self.helpers.save_game_to_history(bet = total_bet, win_amount = outcome)
+            self.helpers.save_game_to_history(bet = total_bet, win_amount = net_outcome)
             
             if not self.helpers.play_again(self.player.get_balance()):
                 break

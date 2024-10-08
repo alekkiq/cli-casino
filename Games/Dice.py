@@ -22,8 +22,6 @@ class Dice:
         Runs the game and returns the player object when done
         '''
         while True:
-            # TODO Header / terminal reload here!!!
-            # eg. header('Nopanheitto', self.player.get_balance())
             self.helpers.game_intro(self.player.get_username())
             
             # check if the player wants to play the game or not
@@ -32,6 +30,11 @@ class Dice:
             
             # get the bet, amount of sides & the guess
             bet = self.helpers.get_bet(self.player.get_balance())
+            
+            # one more opportunity to exit the game before rolling the dice
+            if bet == 0:
+                break
+            
             self.sides = self.helpers.validate_input('\nKuinka monta sivua nopassa on (2 - 20): ', 'int', 2, 20)
             guess = self.helpers.validate_input(f'\nArvaa nopan arvo (1 - {self.sides}): ', 'int', 1, self.sides)
             
@@ -39,17 +42,18 @@ class Dice:
             
             outcome = self._determine_outcome(guess, roll, bet)
             game_won = outcome > 0
+            net_outcome = outcome - bet
 
             if game_won:
-                print(f'\nOnnittelut! Arvasit oikein! Voitit {outcome - bet} pistettä!\n')
+                print(f'\nOnnittelut! Arvasit oikein! Voitit {outcome} pistettä!\n')
             else:
                 print(f'\nHävisit pelin. Oikea arvo oli {roll}.\n')
                 
             # Bulk-update the player values
-            self.helpers.update_player_values(game_won, outcome, save = True)
+            self.helpers.update_player_values(game_won, net_outcome, save = True)
             
             # Save the game to the database
-            self.helpers.save_game_to_history(bet = bet, win_amount = outcome)
+            self.helpers.save_game_to_history(bet = bet, win_amount = net_outcome)
             
             if not self.helpers.play_again(self.player.get_balance()):
                 break
