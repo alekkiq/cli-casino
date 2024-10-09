@@ -1,4 +1,5 @@
 mysql-connector-python
 python-dotenv
 tabulate
+shutil
 wcwidth

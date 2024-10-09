@@ -94,15 +94,15 @@ class Player:
             
             user_result = self.__db.query(user_query, (username,), cursor_settings={'dictionary': True})
             
-            if not user_result['result_group']:
-                return False
-            else:
+            if user_result['result_group']:
                 user_data = user_result['result'][0]
                 
                 profile_result = self.__db.query(profile_query, (user_data['id'],), cursor_settings={'dictionary': True})
-                profile_data = profile_result['result'][0]
+                profile_data = profile_result['result'][0] # there is always atleast the default data
                 
                 return {**user_data, **profile_data} # Merge user and profile data
+            else:
+                return False
         except mysql.connector.Error as error:
             logging.error(f'Error loading player {username} data: {error}')
             return False

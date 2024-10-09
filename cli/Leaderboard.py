@@ -56,7 +56,7 @@ class Leaderboard:
             
             result = self.db.query(query, cursor_settings={'dictionary': True})
             
-            if result['result_group'] > 0: # if there are results
+            if result['result_group']: # if there are results
                 return result['result']
         except Exception as error:
             logging.error(f'Error getting the filtered leaderboard: {error}')

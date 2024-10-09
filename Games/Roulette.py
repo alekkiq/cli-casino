@@ -1,7 +1,6 @@
 import random
 from time import sleep
 from .GameHelpers import GameHelpers
-import shutil
 
 class Roulette:
     '''

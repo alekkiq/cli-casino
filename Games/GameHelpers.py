@@ -118,7 +118,7 @@ class GameHelpers:
         terminal_width = shutil.get_terminal_size().columns
         padding = 4 # padding on both sides
         
-        # Fix the max width to the terminal width
+        # fix the max width to the terminal width
         if terminal_width < max_width:
             max_width = terminal_width - padding
         
@@ -137,17 +137,14 @@ class GameHelpers:
                     current_line = word + " "
             wrapped_lines.append(current_line.strip())
 
-        # Determine the width of the box
+        # determine the width of the box
         box_width = max(max(len(line) for line in wrapped_lines) + padding, min_width)
 
-        # Print the top border
         print('+' + '-' * box_width + '+')
 
-        # Print each line within the box
         for line in wrapped_lines:
             print(f'| {line.ljust(box_width - padding//2)} |')
 
-        # Print the bottom border
         print('+' + '-' * box_width + '+\n')
     
     # ------------------------
@@ -164,7 +161,7 @@ class GameHelpers:
             
             result = self.db.query(query, (value,), cursor_settings={'dictionary': True})
             
-            if result['result_group'] > 0:
+            if result['result_group']:
                 game_type_record = result['result'][0]
                 return game_type_record
             else:
@@ -188,6 +185,7 @@ class GameHelpers:
             self.player.update_games_lost()
             
             if self.player.get_balance() <= 0:
+                self.player.update_balance(0) # dont allow negative balances
                 self.player.set_banned()
 
         self.player.update_games_played()
