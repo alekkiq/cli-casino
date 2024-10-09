@@ -1,16 +1,18 @@
 from random import shuffle
 from time import sleep
 from os import system, name
-import GameHelpers
+from .GameHelpers import GameHelpers
 
 class Ventti:
-    def __init__(self, player: dict):
+    def __init__(self, player: object, db_handler: object):
         self.player = player
-        self.helpers = GameHelpers.GameHelpers(player)
+        self.helpers = GameHelpers(player, db_handler, 'twentyone')
+        
+        # game options
         self.ventti = 21
         self.max_turns = 3
-        self.ranks = ("A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K")
-        self.suits = ("hearts", "diamonds", "clubs", "spades")
+        self.ranks = ("A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K")
+        self.suits = ("hertta", "ruutu", "risti", "pata")
         self.deck = []
         self.player_hand = []
         self.dealer_hand = []
@@ -26,6 +28,8 @@ class Ventti:
         self.dealer_over = False
         self.player_win = False
 
+    # Tätä ei lopullisessa versiossa tarvita, koska 
+    # cli:ssä tulee olemaan joku oma vastaava metodi
     def clear(self):
         if name == 'nt':
             _ = system('cls')
@@ -51,12 +55,13 @@ class Ventti:
 
 # Funktio paljastaa joko pelaajan tai jakajan käden
     def hand_reveal(self):
+        print()
         if not self.player_pass:
             for card in self.player_hand:
-                print(f"{self.player_hand.index(card) + 1}. card of your hand is {card['rank']} of {card['suit']} ")
+                print(f"{self.player_hand.index(card) + 1}. kätesi kortti on {card['suit']} {card['rank']}")
         else:
             for card in self.dealer_hand:
-                print(f"Dealers {self.dealer_hand.index(card) + 1}. card is {card['rank']} of {card['suit']}")
+                print(f"Jakajan {self.dealer_hand.index(card) + 1}. kortti on {card['suit']} {card['rank']}")
 
 # Tällä funktiolla luodaan pakka ja sekoitetaan käyttäen randomin shuffle funktiota.
     def shuffle_deck(self):
@@ -77,7 +82,7 @@ class Ventti:
         self.score_calculation()
         for card in self.player_hand:
             if card["value"] == 1 and self.player_total + 13 <= self.ventti and not self.player_has_ace:
-                if input("You have an ace! Do you want it to have value of 14? Y/n ").upper() == "Y":
+                if input("Sinulla on ässä! Muunnetaanko sen arvo 14? (k / e): ").upper() == "K":
                     self.player_has_ace = True
         for card in self.dealer_hand:
             if card["value"] == 1 and self.dealer_total + 13 <= self.ventti and not self.dealer_has_ace:
@@ -89,33 +94,34 @@ class Ventti:
             self.dealer_pass = True
         if not self.player_pass:
             if self.player_total > self.ventti:
-                print("Busted!")
+                print("Yli meni!")
                 self.player_pass = True
                 self.player_over = True
             else:
-                print(f"You have total of {self.player_total}!")
+                print(f"Kätesi on yhteensä {self.player_total}!")
         else:
             if self.dealer_total > self.ventti:
-                print(f"Dealer has total of {self.dealer_total}!")
-                print("Dealer busted!")
+                print(f"Jakajan käsi on yhteensä {self.dealer_total}!")
+                print("Jakajalla meni yli!")
                 self.dealer_pass = True
                 self.dealer_over = True
             else:
-                print(f"Dealer has total of {self.dealer_total}!")
+                print(f"Jakajan käsi on yhteensä {self.dealer_total}!")   
+        print()
 
 # Funktio uuden kortin nostamiseen. Merkkaa myös kulkevaa vuoroa
     def hit_me(self):
         if not self.player_pass:
             if self.player_turn < self.max_turns:
-                if input("Do you want a another card? Y/n: ").upper() == "Y":
+                if input("Nostetaanko kortti? (k / e): ").upper() == "K":
                     self.player_hand.append(self.deck[0])
                     self.deck.remove(self.deck[0])
                     if self.player_hand[0]["value"] == 1 and not self.player_has_ace:
                         if self.player_total + 13 <= self.ventti:
-                            print("you have following cards in your hand")
+                            print("Kädessäsi on seuraavat kortit: ")
                             for card in self.player_hand:
                                 print(card["rank"] + " of " + card["suit"])
-                            if input("Do you want your ace to be value of 14? Y/n: ").upper() == "Y":
+                            if input("Muunnetaanko ässän arvo 14? (k / e): ").upper() == "K":
                                 self.player_has_ace = True
                     self.player_turn += 1
                 else:
@@ -150,22 +156,26 @@ class Ventti:
             self.dealer_total += d_card["value"]
 
 # Funktio voittajan määrittelyyn.
-    def is_winner(self):
+    def is_winner(self, bet: int) -> int:
         if self.player_over or self.dealer_over:
             if self.player_over:
-                print("Dealer won the game!")
+                print("Jakaja voitti pelin!")
             else:
-                print("Congratulations! You won the game!")
+                winnings = bet * 2
+                print(f"Onnittelut! Voitit pelin ja {winnings} pistettä!")
                 self.player_win = True
-        elif self.player_total == self.dealer_total:
-            print("Dealer has won the game!")
-        elif self.player_total <= self.dealer_total:
-            print("Dealer has won the game!")
+                return winnings  # return the winnings
         else:
-            print("Congratulations! You won the game!")
-            self.player_win = True
-
-
+            if self.player_total <= self.dealer_total:
+                print("Jakaja voitti pelin!")
+            else:
+                winnings = bet * 2
+                print(f"Onnittelut! Voitit pelin ja {winnings} pistettä!")
+                self.player_win = True
+                return winnings  # return the winnings
+        
+        print()    
+        return 0 # return 0 if the player lost
 
 # Pelin logiikka tulee tänne.
     def ai_logic(self):
@@ -183,17 +193,32 @@ class Ventti:
 
 
 # Pääfunktio pelin ajamiseen.
-    def run(self):
+    def start_game(self) -> object:
+        '''
+        Runs the game and returns the player object when done
+        '''
         while True:
-            self.game_stat_reset()
-            bet = self.helpers.getBet()
+            self.helpers.game_intro(self.player.get_username())
+            
+            # check if the player wants to play the game or not
+            if not self.helpers.play_game():
+                break
+            
+            # get the bet, amount of sides & the guess
+            bet = self.helpers.get_bet(self.player.get_balance())
+            
+            # start the game
             self.first_deal()
+            
+            # the players turn
             while not self.player_pass:
                 self.hand_reveal()
                 self.score_calculation()
                 self.over_check()
                 self.hit_me()
-                self.clear()
+                # self.clear()
+            
+            # dealers turn
             while not self.dealer_pass:
                 self.hand_reveal()
                 self.score_calculation()
@@ -201,17 +226,23 @@ class Ventti:
                 sleep(1)
                 self.ai_logic()
                 sleep(1)
-                self.clear()
-            self.is_winner()
+                # self.clear()
+            
+            outcome = self.is_winner(bet)
+            game_won = outcome > 0
+            net_outcome = outcome - bet
 
-            if self.player_win:
-                self.helpers.updatePlayerBalance(bet * 2, True)
-            elif not self.player_win:
-                print(f"You have {self.helpers.getCurrentBalance()} credits left.")
-
-            if not self.helpers.playAgain():
+            # Bulk-update the player values
+            self.helpers.update_player_values(game_won, net_outcome, save = True)
+            
+            # Save the game to the database
+            self.helpers.save_game_to_history(bet = bet, win_amount = net_outcome)
+            
+            if not self.helpers.play_again(self.player.get_balance()):
                 break
 
-if __name__ == "__main__":
-    game = Ventti({'id': 2, 'username': 'Tuukka', 'balance': 125})
-    game.run()
+        return self.player # return the updated player object
+
+# if __name__ == "__main__":
+#     game = Ventti({'id': 2, 'username': 'Tuukka', 'balance': 125})
+#     game.run()

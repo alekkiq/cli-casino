@@ -208,7 +208,8 @@ class GameHelpers:
             user_id = self.player.get_data().get('id')
             game_type_id = self.db.query('SELECT id FROM game_types WHERE name = %s', (self.game_info.get('name'),), cursor_settings={'dictionary': True})['result'][0].get('id')
 
-            values = (bet, win_amount, datetime.now(), int(user_id), int(game_type_id))
+            adjusted_win_amount = win_amount if win_amount > 0 else 0
+            values = (bet, adjusted_win_amount, datetime.now(), int(user_id), int(game_type_id))
             
             result = self.db.query(query, values)
             
