@@ -12,7 +12,8 @@ from cli.PlayerProfile import PlayerProfile
 from Games.Dice import Dice
 from Games.Roulette import Roulette
 from Games.CoinFlip import CoinFlip
-from Games.Ventti import Ventti
+from Games.ventti import Ventti
+from Games.Slots import Slots
 
 logo = r"""
   ____  _      ___    ____     _     ____  ___  _   _   ___
@@ -104,7 +105,8 @@ def main():
                             twenty_one_game = Ventti(player, db)
                             twenty_one_game.start_game()
                         case 'slots':
-                            pass
+                            slots_game = Slots(player, db)
+                            slots_game.start_game()
                         case 'coinflip':
                             coinflip_game = CoinFlip(player, db)
                             coinflip_game.start_game()
